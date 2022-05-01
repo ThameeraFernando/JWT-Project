@@ -18,11 +18,24 @@ const login = async (req, res) => {
 };
 
 const dashboard = async (req, res) => {
-  const luckyNumber = Math.floor(Math.random() * 100);
-  res.status(200).json({
-    msg: `Hello Thameera`,
-    secret: `Here is your luckyNumber ${luckyNumber}`,
-  });
+  // console.log(req.headers);
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    throw new CustomerAPIError("No token block provided.", 401);
+  }
+  const token = authHeader.split(" ")[1];
+  console.log(token);
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log(decoded);
+    const luckyNumber = Math.floor(Math.random() * 100);
+    res.status(200).json({
+      msg: `Hello ${decoded.username}.`,
+      secret: `Here is your luckyNumber ${luckyNumber}`,
+    });
+  } catch (error) {
+    throw new CustomerAPIError("Not authorize to access this route.", 401);
+  }
 };
 
 module.exports = {
